@@ -89,140 +89,133 @@
 //   console.log(`Server is running on http://localhost:${port}`);
 // });
 
-// const express = require('express');
-// const bodyParser = require('body-parser');
-
-// const app = express();
-// const port = process.env.PORT || 3000;
-
-// const verifyToken = 'instamaster_token';
-
-// app.use(bodyParser.json());
-
-// app.use(bodyParser.json());
-
-// app.get('/messaging-webhook', (req, res) => {
-//     // Parse the query params
-//     const mode = req.query['hub.mode'];
-//     const token = req.query['hub.verify_token'];
-//     const challenge = req.query['hub.challenge'];
-//     if (mode && token) {
-
-//         if (mode === 'subscribe' && token === verifyToken) {
-//             console.log('WEBHOOK_VERIFIED');
-//             res.status(200).send(challenge);
-//         } else {
-//             console.error('Verification failed');
-//             res.sendStatus(403);
-//         }
-//     } else {
-//         console.error('Bad request - missing query parameters');
-//         res.sendStatus(400);
-//     }
-// });
-
-
-// // Webhook endpoint for receiving new messages
-// app.post('/webhook', (req, res) => {
-//     const body = req.body;
-
-//     // Handle incoming messages or events here
-//     if (body.object === 'page') {
-//         body.entry.forEach((entry) => {
-//             entry.messaging.forEach((event) => {
-//                 if (event.message) {
-//                     // Handle incoming message
-//                     const sender = event.sender.id;
-//                     const messageText = event.message.text;
-//                     console.log(`New message from ${sender}: ${messageText}`);
-//                 }
-//             });
-//         });
-//     }
-
-//     // Respond to the webhook request
-//     res.status(200).send('Webhook received successfully');
-// });
-
-// // Start the server
-// app.listen(port, () => {
-//     console.log(`Server is running on http://localhost:${port}`);
-// });
-
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 dotenv.config({path:'./.env'})
-const https = require('https');
-const fs = require('fs');
-
 const app = express();
 const port = process.env.PORT || 3000;
 const verifyToken = process.env.VERIFY_TOKEN;
-
 app.use(bodyParser.json());
 
-// Middleware to redirect HTTP to HTTPS
-app.use((req, res, next) => {
-  if (req.protocol === 'http') {
-    res.redirect(301, `https://${req.headers.host}${req.url}`);
-  } else {
-    next();
-  }
-});
 
-// Webhook endpoint for handling verification
 app.get('/messaging-webhook', (req, res) => {
-  // Parse the query params
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
+    // Parse the query params
+    console.log(verifyToken)
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    if (mode && token) {
 
-  if (mode && token) {
-    if (mode === 'subscribe' && token === verifyToken) {
-      console.log('WEBHOOK_VERIFIED');
-      res.status(200).send(challenge);
+        if (mode === 'subscribe' && token === verifyToken) {
+            console.log('WEBHOOK_VERIFIED');
+            res.status(200).send(challenge);
+        } else {
+            console.error('Verification failed');
+            res.sendStatus(403);
+        }
     } else {
-      console.error('Verification failed');
-      res.sendStatus(403);
+        console.error('Bad request - missing query parameters');
+        res.sendStatus(400);
     }
-  } else {
-    console.error('Bad request - missing query parameters');
-    res.sendStatus(400);
-  }
 });
+
 
 // Webhook endpoint for receiving new messages
 app.post('/webhook', (req, res) => {
-  const body = req.body;
-  // Handle incoming messages or events here
-  if (body.object === 'page') {
-    body.entry.forEach((entry) => {
-      entry.messaging.forEach((event) => {
-        if (event.message) {
-          // Handle incoming message
-          const sender = event.sender.id;
-          const messageText = event.message.text;
-          console.log(`New message from ${sender}: ${messageText}`);
-        }
-      });
-    });
-  }
+    const body = req.body;
 
-  // Respond to the webhook request
-  res.status(200).send('Webhook received successfully');
+    // Handle incoming messages or events here
+    if (body.object === 'page') {
+        body.entry.forEach((entry) => {
+            entry.messaging.forEach((event) => {
+                if (event.message) {
+                    // Handle incoming message
+                    const sender = event.sender.id;
+                    const messageText = event.message.text;
+                    console.log(`New message from ${sender}: ${messageText}`);
+                }
+            });
+        });
+    }
+
+    // Respond to the webhook request
+    res.status(200).send('Webhook received successfully');
 });
 
-// Specify the paths to your SSL certificate and private key files
-const privateKey = fs.readFileSync('path/to/private-key.pem', 'utf8');
-const certificate = fs.readFileSync('path/to/certificate.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
-
-// Create an HTTPS server using the credentials
-const httpsServer = https.createServer(credentials, app);
-
-// Start the HTTPS server
-httpsServer.listen(port, () => {
-  console.log(`Server is running on https://localhost:${port}`);
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
+
+
+// const express = require('express');
+// const bodyParser = require('body-parser');
+// const dotenv = require('dotenv');
+// dotenv.config({path:'./.env'})
+
+// const app = express();
+// const port = process.env.PORT || 3000;
+// const verifyToken = process.env.VERIFY_TOKEN;
+
+// app.use(bodyParser.json());
+
+// // Middleware to redirect HTTP to HTTPS
+// app.use((req, res, next) => {
+//   if (req.protocol === 'http') {
+//     res.redirect(301, `https://${req.headers.host}${req.url}`);
+//   } else {
+//     next();
+//   }
+// });
+
+// // Webhook endpoint for handling verification
+// app.get('/messaging-webhook', (req, res) => {
+//   // Parse the query params
+//   const mode = req.query['hub.mode'];
+//   const token = req.query['hub.verify_token'];
+//   const challenge = req.query['hub.challenge'];
+
+//   if (mode && token) {
+//     if (mode === 'subscribe' && token === verifyToken) {
+//       console.log('WEBHOOK_VERIFIED');
+//       res.status(200).send(challenge);
+//     } else {
+//       console.error('Verification failed');
+//       res.sendStatus(403);
+//     }
+//   } else {
+//     console.error('Bad request - missing query parameters');
+//     res.sendStatus(400);
+//   }
+// });
+
+// // Webhook endpoint for receiving new messages
+// app.post('/webhook', (req, res) => {
+//   const body = req.body;
+//   // Handle incoming messages or events here
+//   if (body.object === 'page') {
+//     body.entry.forEach((entry) => {
+//       entry.messaging.forEach((event) => {
+//         if (event.message) {
+//           // Handle incoming message
+//           const sender = event.sender.id;
+//           const messageText = event.message.text;
+//           console.log(`New message from ${sender}: ${messageText}`);
+//         }
+//       });
+//     });
+//   }
+
+//   // Respond to the webhook request
+//   res.status(200).send('Webhook received successfully');
+// });
+
+
+
+// // Create an HTTPS server using the credentials
+
+// // // Start the server
+// app.listen(port, () => {
+//     console.log(`Server is running on http://localhost:${port}`);
+// });
